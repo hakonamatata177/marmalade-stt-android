@@ -1,0 +1,132 @@
+# Konverterer norske Whisper-modeller (Hugging Face-format) til sherpa-onnx int8 og legger
+# dem i releasen «modeller» sammen med norske-modeller.json, som appen leser modellisten fra.
+# Ny modell: kjør workflowen med repoet lagt til i listen. Uendrede modeller (samme commit) hoppes over.
+name: Norske modeller
+
+on:
+  workflow_dispatch:
+    inputs:
+      modeller:
+        description: "Hugging Face-repoer (mellomromsseparert)"
+        default: "NbAiLab/nb-whisper-tiny NbAiLab/nb-whisper-base NbAiLab/nb-whisper-small"
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: norske-modeller
+
+env:
+  TAG: modeller
+  GH_TOKEN: ${{ github.token }}
+
+jobs:
+  forbered:
+    runs-on: ubuntu-24.04
+    outputs:
+      matrise: ${{ steps.m.outputs.matrise }}
+    steps:
+      - id: m
+        env:
+          MODELLER: ${{ inputs.modeller }}
+        run: echo "matrise=$(python3 -c 'import json,os; print(json.dumps(os.environ["MODELLER"].split()))')" >> "$GITHUB_OUTPUT"
+      - name: Opprett releasen hvis den mangler
+        run: |
+          gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
+            gh release create "$TAG" -R "$GITHUB_REPOSITORY" --prerelease --title "Norske talemodeller" \
+              --notes "Norske Whisper-modeller konvertert til sherpa-onnx (int8) for Marmalade STT. Listen appen leser: norske-modeller.json."
+
+  konverter:
+    needs: forbered
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        repo: ${{ fromJson(needs.forbered.outputs.matrise) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Installer
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+          pip install -q torch==2.1.2 --index-url https://download.pytorch.org/whl/cpu
+          pip install -q "numpy<2" onnx==1.16.2 onnxruntime==1.19.2 safetensors huggingface_hub \
+            sherpa-onnx==1.13.8 tiktoken numba more-itertools tqdm
+          pip install -q --no-deps openai-whisper==20250625
+      - name: Sjekk om modellen allerede er konvertert
+        id: sjekk
+        env:
+          REPO: ${{ matrix.repo }}
+        run: |
+          id=$(basename "$REPO")
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+          gh release download "$TAG" -R "$GITHUB_REPOSITORY" -p norske-modeller.json -D gammel || true
+          har=$(python3 tools/norsk/manifest.py revision --existing gammel/norske-modeller.json --id "$id")
+          ny=$(python3 -c "from huggingface_hub import HfApi; print(HfApi().model_info('$REPO').sha)")
+          echo "listen har: '$har', Hugging Face: '$ny'"
+          if [ "$har" = "$ny" ]; then echo "hopp=1" >> "$GITHUB_OUTPUT"; fi
+      - name: Konverter
+        if: steps.sjekk.outputs.hopp != '1'
+        env:
+          REPO: ${{ matrix.repo }}
+          ID: ${{ steps.sjekk.outputs.id }}
+        run: |
+          mkdir -p work && cd work
+          python ../tools/norsk/hf_til_openai.py --repo "$REPO" --out "$ID.pt" --info "$ID.info.json"
+          rm -rf ~/.cache/huggingface
+          python ../tools/norsk/export-onnx.py --model "$ID" --checkpoint "$ID.pt"
+          mkdir -p ut
+          mv "$ID-encoder.int8.onnx" ut/encoder.int8.onnx
+          mv "$ID-decoder.int8.onnx" ut/decoder.int8.onnx
+          mv "$ID-tokens.txt" ut/tokens.txt
+          ls -la ut
+      - name: Test mot lydklipp (Kongens tale, fra NbAiLab/nb-whisper på GitHub)
+        if: steps.sjekk.outputs.hopp != '1'
+        env:
+          ID: ${{ steps.sjekk.outputs.id }}
+        run: |
+          cd work
+          curl -sL -o king.mp3 https://github.com/NbAiLab/nb-whisper/raw/main/audio/king.mp3
+          ffmpeg -loglevel error -i king.mp3 -t 25 -ar 16000 -ac 1 -c:a pcm_s16le king.wav
+          python ../tools/norsk/test_modell.py --pt "$ID.pt" --encoder ut/encoder.int8.onnx \
+            --decoder ut/decoder.int8.onnx --tokens ut/tokens.txt --wav king.wav
+      - name: Last opp
+        if: steps.sjekk.outputs.hopp != '1'
+        env:
+          ID: ${{ steps.sjekk.outputs.id }}
+        run: |
+          cd work
+          prefix="$ID-r$GITHUB_RUN_NUMBER"
+          mkdir -p opp fragment
+          for f in encoder.int8.onnx decoder.int8.onnx tokens.txt; do cp "ut/$f" "opp/$prefix-$f"; done
+          gh release upload "$TAG" -R "$GITHUB_REPOSITORY" --clobber opp/*
+          python ../tools/norsk/manifest.py fragment --info "$ID.info.json" --id "$ID" --dir ut \
+            --base-url "https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG" --prefix "$prefix" \
+            --out "fragment/$ID.json"
+      - uses: actions/upload-artifact@v4
+        if: steps.sjekk.outputs.hopp != '1'
+        with:
+          name: fragment-${{ steps.sjekk.outputs.id }}
+          path: work/fragment/*.json
+
+  liste:
+    needs: konverter
+    if: always() && needs.konverter.result != 'cancelled'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: fragment-*
+          path: fragmenter
+          merge-multiple: true
+      - name: Oppdater norske-modeller.json
+        run: |
+          gh release download "$TAG" -R "$GITHUB_REPOSITORY" -p norske-modeller.json -D gammel || true
+          shopt -s nullglob
+          python3 tools/norsk/manifest.py merge --existing gammel/norske-modeller.json --out norske-modeller.json fragmenter/*.json
+          cat norske-modeller.json
+          gh release upload "$TAG" -R "$GITHUB_REPOSITORY" --clobber norske-modeller.json
