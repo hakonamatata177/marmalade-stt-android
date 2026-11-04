@@ -4,8 +4,13 @@
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 REPO=hakonamatata177/marmalade-stt-android
-ENHET=${1:-$(adb devices | awk '$2=="device"{print $1}' | while read -r d; do
-  [ "$(adb -s "$d" shell getprop ro.product.model 2>/dev/null | tr -d '\r')" = "Pixel 10 Pro" ] && echo "$d"; done | head -1)}
+finn_pixel() {
+  for d in $(adb devices | awk '$2=="device"{print $1}'); do
+    # </dev/null: adb shell leser ellers stdin
+    if [ "$(adb -s "$d" shell getprop ro.product.model </dev/null 2>/dev/null | tr -d '\r')" = "Pixel 10 Pro" ]; then echo "$d"; return; fi
+  done
+}
+ENHET=${1:-$(finn_pixel)}
 KS=.auth/norsk.keystore; PW=.auth/keystore_pw
 mkdir -p .auth build/norsk && chmod 700 .auth
 

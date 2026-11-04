@@ -46,3 +46,23 @@ jobs:
           name: apk-norsk
           path: app/build/outputs/apk/norsk/release/*.apk
           if-no-files-found: error
+
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+      - run: echo "sdk.dir=$ANDROID_HOME" > local.properties
+      - name: Enhetstester (norsk-varianten)
+        run: ./gradlew --no-daemon :app:testNorskDebugUnitTest
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: testrapport
+          path: app/build/reports/tests/

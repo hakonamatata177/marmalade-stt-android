@@ -1,0 +1,140 @@
+{
+  "version": 1,
+  "engines": [
+    {
+      "id": "nb-whisper-tiny",
+      "name": "NB-Whisper Tiny",
+      "description": "Minste NB-Whisper fra Nasjonalbiblioteket. Svært rask, men gjør flere feil.",
+      "family": "WHISPER",
+      "languages": [
+        "nb",
+        "nn"
+      ],
+      "languageOptions": {
+        "codes": [
+          "nb",
+          "nn"
+        ],
+        "default": "nb"
+      },
+      "livePartials": true,
+      "license": "Apache-2.0",
+      "source": "https://huggingface.co/NbAiLab/nb-whisper-tiny",
+      "revision": "8b38492d0e4111d5d6ad825e979cb082a2da013a",
+      "files": [
+        {
+          "role": "ENCODER",
+          "name": "encoder.int8.onnx",
+          "url": "https://github.com/hakonamatata177/marmalade-stt-android/releases/download/modeller/nb-whisper-tiny-r1-encoder.int8.onnx",
+          "sha256": "9d769c7bd9a7f22853ff9773d02a4781170979ca6b677eaabc28b69294b1060d",
+          "size": 12926475
+        },
+        {
+          "role": "DECODER",
+          "name": "decoder.int8.onnx",
+          "url": "https://github.com/hakonamatata177/marmalade-stt-android/releases/download/modeller/nb-whisper-tiny-r1-decoder.int8.onnx",
+          "sha256": "22a7b8606ef8234dcce791afc7f46b700f18cf8e06b59409f937bd22e2003925",
+          "size": 89852096
+        },
+        {
+          "role": "TOKENS",
+          "name": "tokens.txt",
+          "url": "https://github.com/hakonamatata177/marmalade-stt-android/releases/download/modeller/nb-whisper-tiny-r1-tokens.txt",
+          "sha256": "b34b360dbb493e781e479794586d661700670d65564001f23024971d1f2fa126",
+          "size": 816730
+        }
+      ],
+      "licenseKey": "nb-whisper"
+    },
+    {
+      "id": "nb-whisper-base",
+      "name": "NB-Whisper Base",
+      "description": "Liten og rask NB-Whisper fra Nasjonalbiblioteket.",
+      "family": "WHISPER",
+      "languages": [
+        "nb",
+        "nn"
+      ],
+      "languageOptions": {
+        "codes": [
+          "nb",
+          "nn"
+        ],
+        "default": "nb"
+      },
+      "livePartials": true,
+      "license": "Apache-2.0",
+      "source": "https://huggingface.co/NbAiLab/nb-whisper-base",
+      "revision": "2ab372b6baa181a22f54f18030cae3703402c59e",
+      "files": [
+        {
+          "role": "ENCODER",
+          "name": "encoder.int8.onnx",
+          "url": "https://github.com/hakonamatata177/marmalade-stt-android/releases/download/modeller/nb-whisper-base-r1-encoder.int8.onnx",
+          "sha256": "9344ab1fef5df72e9e750c15c17031c01452454051b345ce70a7f944881ebf22",
+          "size": 29104811
+        },
+        {
+          "role": "DECODER",
+          "name": "decoder.int8.onnx",
+          "url": "https://github.com/hakonamatata177/marmalade-stt-android/releases/download/modeller/nb-whisper-base-r1-decoder.int8.onnx",
+          "sha256": "29db53215096bba7f988f28fcdb6c52d9e286911d92eb4eeeaf948f62e406911",
+          "size": 130667726
+        },
+        {
+          "role": "TOKENS",
+          "name": "tokens.txt",
+          "url": "https://github.com/hakonamatata177/marmalade-stt-android/releases/download/modeller/nb-whisper-base-r1-tokens.txt",
+          "sha256": "b34b360dbb493e781e479794586d661700670d65564001f23024971d1f2fa126",
+          "size": 816730
+        }
+      ],
+      "licenseKey": "nb-whisper"
+    },
+    {
+      "id": "nb-whisper-small",
+      "name": "NB-Whisper Small",
+      "description": "NB-Whisper fra Nasjonalbiblioteket. God balanse mellom fart og treffsikkerhet.",
+      "family": "WHISPER",
+      "languages": [
+        "nb",
+        "nn"
+      ],
+      "languageOptions": {
+        "codes": [
+          "nb",
+          "nn"
+        ],
+        "default": "nb"
+      },
+      "livePartials": true,
+      "license": "Apache-2.0",
+      "source": "https://huggingface.co/NbAiLab/nb-whisper-small",
+      "revision": "e9bb5cb83cb74c96239fd506163aa97cff2fce4c",
+      "files": [
+        {
+          "role": "ENCODER",
+          "name": "encoder.int8.onnx",
+          "url": "https://github.com/hakonamatata177/marmalade-stt-android/releases/download/modeller/nb-whisper-small-r1-encoder.int8.onnx",
+          "sha256": "040f64f68c788d37abdf5cc7f31410d1f0f212d95606e3923512845225729391",
+          "size": 112413392
+        },
+        {
+          "role": "DECODER",
+          "name": "decoder.int8.onnx",
+          "url": "https://github.com/hakonamatata177/marmalade-stt-android/releases/download/modeller/nb-whisper-small-r1-decoder.int8.onnx",
+          "sha256": "9468a88c585fcffd44c11d598f4a2e8995501d649dd4efc611365f8506790d70",
+          "size": 262219848
+        },
+        {
+          "role": "TOKENS",
+          "name": "tokens.txt",
+          "url": "https://github.com/hakonamatata177/marmalade-stt-android/releases/download/modeller/nb-whisper-small-r1-tokens.txt",
+          "sha256": "b34b360dbb493e781e479794586d661700670d65564001f23024971d1f2fa126",
+          "size": 816730
+        }
+      ],
+      "licenseKey": "nb-whisper"
+    }
+  ]
+}
