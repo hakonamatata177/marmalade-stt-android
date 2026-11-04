@@ -234,7 +234,7 @@ private fun EngineDetailsBody(
         EnginePills(pills, long = true)
     }
     Spacer(Modifier.height(12.dp))
-    Text(text = stringResource(engine.description), style = MaterialTheme.typography.bodyMedium)
+    Text(text = engine.descriptionText ?: stringResource(engine.description), style = MaterialTheme.typography.bodyMedium)
     Spacer(Modifier.height(16.dp))
     // Dark: raised above the dialog (#84; surfaceContainer now sits below it). Light: the cream-orange as before.
     val depth = MaterialTheme.depth

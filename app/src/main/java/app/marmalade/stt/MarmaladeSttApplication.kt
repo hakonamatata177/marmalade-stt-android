@@ -3,6 +3,7 @@ package app.marmalade.stt
 import android.app.Application
 import android.util.Log
 import app.marmalade.stt.data.SpeechSettings
+import app.marmalade.stt.install.ExtraEngines
 import app.marmalade.stt.install.ModelInstaller
 import app.marmalade.stt.speech.SpeechEngineManager
 import app.marmalade.stt.speech.SpeedCalibrator
@@ -37,6 +38,9 @@ class MarmaladeSttApplication : Application() {
     @Inject lateinit var speechSettings: SpeechSettings
 
     override fun onCreate() {
+        // Before Hilt builds anything and before cleanUpRemovedEngines: an engine missing from
+        // the catalog would have its files deleted.
+        ExtraEngines.load(this)
         super.onCreate()
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
         scope.launch { speechEngines.warmUp() }

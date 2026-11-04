@@ -459,6 +459,20 @@ object LicenseCatalog {
             copyright = listOf("Copyright (c) 2022 OpenAI"),
             textAsset = "whisper.txt",
         ),
+        // Norwegian engines from the fork's manifest (install/ExtraEngines.kt, tools/norsk/).
+        Component(
+            key = "nb-whisper",
+            name = "NB-Whisper (National Library of Norway)",
+            role = "Norwegian speech recognition engines NB-Whisper Tiny, Base and Small " +
+                "(int8 ONNX export made with sherpa-onnx's Whisper script)",
+            shipsIn = "Download (Engines screen; from github.com/hakonamatata177/marmalade-stt-android, release modeller)",
+            licenseId = "Apache-2.0",
+            copyright = listOf(
+                "NB-Whisper by the National Library of Norway (NbAiLab, https://huggingface.co/NbAiLab), " +
+                    "fine-tuned from OpenAI Whisper (Copyright (c) 2022 OpenAI, MIT).",
+                "Modified for this app: converted to ONNX and quantized to int8, without retraining.",
+            ),
+        ),
 
         // The user engines are Parakeet Ultra, Parakeet 110M, Parakeet 0.6B ja
         // (#60), Canary, Nemotron 3.5, Whisper turbo (#45) and Qwen3-ASR (#50;

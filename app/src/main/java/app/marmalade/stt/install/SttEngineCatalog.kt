@@ -142,6 +142,8 @@ data class LanguageOptions(val codes: List<String>, val default: String) {
  *   whose record names exactly this set stays Installed and runs from these
  *   files ([ModelInstaller.installedModel]); nothing downloads them any more.
  *   Set it with [SttEngineCatalog.replacingFiles].
+ * @property descriptionText the card's summary as plain text, for engines from
+ *   [ExtraEngines]' manifest, which has no string resource; wins over [description].
  */
 data class SttEngineDescriptor(
     val id: String,
@@ -159,6 +161,7 @@ data class SttEngineDescriptor(
     val lowerCaseLatin: Boolean = false,
     val preSpeechPhantom: String? = null,
     val previousFiles: List<ModelFile> = emptyList(),
+    val descriptionText: String? = null,
 ) {
     /** Total download size, which is also the installed size (files are stored as downloaded). */
     val sizeBytes: Long get() = files.sumOf { it.sizeBytes }
@@ -238,7 +241,16 @@ object SttEngineCatalog {
     private fun asset(role: FileRole, base: String, engineId: String, name: String, sha256: String, size: Long) =
         ModelFile(role, name, "$base/$engineId-$name", sha256, size)
 
-    val engines: List<SttEngineDescriptor> = listOf(
+    /**
+     * Every engine the app can install: the built-in ones, then those from
+     * [ExtraEngines]' manifest (norske-modeller.json in this fork's releases).
+     */
+    val engines: List<SttEngineDescriptor> get() = builtIn + ExtraEngines.engines.value
+
+    /** Ids an [ExtraEngines] entry may not take. */
+    internal val builtInIds: Set<String> by lazy { builtIn.map { it.id }.toSet() }
+
+    private val builtIn: List<SttEngineDescriptor> = listOf(
         // ---- User engines, everyday first ----------------------------------------
         // Moondream's post-trained Parakeet v3 (#25): v3's graph and vocabulary with Moondream's
         // weights, converted by tools/parakeet-ultra/convert.py and hosted on ENGINES_REPO (#39).

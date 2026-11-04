@@ -186,7 +186,7 @@ private fun EngineCardText(
         }
         Spacer(Modifier.height(6.dp))
         Text(
-            text = stringResource(engine.description),
+            text = engine.descriptionText ?: stringResource(engine.description),
             style = MaterialTheme.typography.bodySmall,
             color = colors.onSurfaceVariant,
         )

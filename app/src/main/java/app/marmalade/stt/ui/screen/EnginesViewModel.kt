@@ -1,5 +1,6 @@
 package app.marmalade.stt.ui.screen
 
+import android.content.Context
 import android.util.Log
 import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
@@ -7,14 +8,17 @@ import androidx.lifecycle.viewModelScope
 import app.marmalade.stt.R
 import app.marmalade.stt.data.SpeechPrefs
 import app.marmalade.stt.data.SpeechSettings
+import app.marmalade.stt.install.ExtraEngines
 import app.marmalade.stt.install.InstallState
 import app.marmalade.stt.install.ModelDownloads
 import app.marmalade.stt.install.ModelInstaller
 import app.marmalade.stt.install.SttEngineCatalog
 import app.marmalade.stt.speech.SpeedCalibrator
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.IOException
 import javax.inject.Inject
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -22,6 +26,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -47,6 +52,7 @@ import kotlinx.coroutines.launch
  */
 @HiltViewModel
 class EnginesViewModel @Inject constructor(
+    @ApplicationContext context: Context,
     private val installer: ModelInstaller,
     private val downloads: ModelDownloads,
     private val settings: SpeechSettings,
@@ -55,6 +61,8 @@ class EnginesViewModel @Inject constructor(
 
     init {
         calibrator.ensureMeasured()
+        // New engines in the fork's manifest (ExtraEngines) appear in the list as soon as it arrives.
+        viewModelScope.launch { ExtraEngines.refresh(context) }
     }
 
     /**
@@ -70,10 +78,17 @@ class EnginesViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
-    /** Live install state per engine id, for every catalog engine. */
+    /**
+     * Live install state per engine id, for every catalog engine. Follows the
+     * catalog itself too, which grows when [ExtraEngines] fetches a manifest.
+     */
+    @OptIn(ExperimentalCoroutinesApi::class)
     val states: StateFlow<Map<String, InstallState>> =
-        combine(SttEngineCatalog.engines.map { engine -> installer.state(engine.id) }) { values ->
-            SttEngineCatalog.engines.map { it.id }.zip(values).toMap()
+        ExtraEngines.engines.flatMapLatest {
+            val all = SttEngineCatalog.engines
+            combine(all.map { engine -> installer.state(engine.id) }) { values ->
+                all.map { it.id }.zip(values).toMap()
+            }
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),

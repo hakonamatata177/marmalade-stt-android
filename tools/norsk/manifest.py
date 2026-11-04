@@ -68,6 +68,7 @@ def fragment(a):
         "languageOptions": {"codes": ["nb", "nn"], "default": "nb"},
         "livePartials": size in LIVE,
         "license": "Apache-2.0",
+        "licenseKey": "nb-whisper" if info["repo"].startswith("NbAiLab/") else "",
         "source": f"https://huggingface.co/{info['repo']}",
         "revision": info["revision"],
         "files": files,

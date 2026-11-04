@@ -36,3 +36,6 @@ models-scratch/
 __pycache__/
 *.pyc
 
+
+# Signeringsnøkkel for norsk-bygget (tools/norsk/signer.sh)
+.auth/

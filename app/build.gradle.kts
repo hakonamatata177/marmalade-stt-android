@@ -161,6 +161,17 @@ android {
     productFlavors {
         create("fdroid") { dimension = "distribution" }
         create("play") { dimension = "distribution" }
+        // This fork's build (hakonamatata177/marmalade-stt-android, branch norsk): installs next to
+        // the F-Droid app, and lists the Norwegian engines from ExtraEngines' manifest. Signed on
+        // Rafiki (tools/norsk/signer.sh), not by Gradle.
+        create("norsk") {
+            dimension = "distribution"
+            applicationIdSuffix = ".norsk"
+            versionNameSuffix = "-norsk"
+            resValue("string", "app_name", "Marmalade Norsk")
+            resValue("string", "ime_name", "Marmalade tale (norsk)")
+            resValue("string", "recognizer_label", "Marmalade Norsk")
+        }
     }
 
     signingConfigs {
